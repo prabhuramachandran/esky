@@ -6,7 +6,7 @@ from __future__ import with_statement
 import sys
 import os
 import unittest
-from os.path import dirname
+from os.path import dirname, join
 import subprocess
 import shutil
 import zipfile
@@ -755,3 +755,36 @@ class TestFilesDiffer(unittest.TestCase):
     def tearDown(self):
         shutil.rmtree(self.tdir)
 
+class TestDiffPatch(unittest.TestCase):
+    """Test if we can create a patch and apply it correctly for some cases.
+    """
+    def setUp(self):
+        self.tests_root = dirname(__file__)
+        tfdir = os.path.join(self.tests_root, "patch-test-files")
+        self.tdir = tempfile.mkdtemp()
+        self.src_dir = src_dir = join(self.tdir, 'source') 
+        self.tgt_dir = tgt_dir = join(self.tdir, 'target')
+        for d in src_dir, tgt_dir:
+            os.mkdir(d)
+        zf = zipfile.ZipFile(join(tfdir, 'source.zip'), 'r')
+        zf.extractall(src_dir)
+        zf = zipfile.ZipFile(join(tfdir, 'target.zip'), 'r')
+        zf.extractall(tgt_dir)
+
+    def tearDown(self):
+        shutil.rmtree(self.tdir)
+        
+    def testDiffPatch(self):
+        """Create a patch and apply that."""
+        # This test creates a directory which used to break when MOVE_FROM is 
+        # used.
+        
+        # First create a patch.
+        patch_fname = join(self.tdir, 'patch')
+        patchfile = open(patch_fname, 'wb')
+        esky.patch.write_patch(self.src_dir, self.tgt_dir, patchfile)
+        patchfile.close()
+        
+        # Try to apply the patch.
+        patchfile = open(patch_fname, 'rb')
+        esky.patch.apply_patch(self.src_dir, patchfile)

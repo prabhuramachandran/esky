@@ -953,11 +953,7 @@ class Differ(object):
                     at_path = True
                     self._write_command(JOIN_PATH)
                     self._write_path(nm)
-                    if os.path.exists(os.path.join(target,sibnm)):
-                        self._write_command(COPY_FROM)
-                    else:
-                        self._write_command(MOVE_FROM)
-                        moved_sources.append(sibnm)
+                    self._write_command(COPY_FROM)
                     self._write_path(sibnm)
             #  Recursively diff against the selected source directory
             if paths_differ(s_nm,t_nm):
